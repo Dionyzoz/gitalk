@@ -7,7 +7,6 @@ import './style/index.styl'
 import {
   queryParse,
   queryStringify,
-  axiosJSON,
   axiosGithub,
   getMetaContent,
   formatErrorMsg,
@@ -20,6 +19,21 @@ import Comment from './component/comment'
 import Svg from './component/svg'
 import { GT_ACCESS_TOKEN, GT_VERSION, GT_COMMENT } from './const'
 import QLGetComments from './graphql/getComments'
+
+function getCookie (cname) {
+  const name = `${cname}=`
+  const ca = document.cookie.split(';')
+  for (let i = 0; i < ca.length; i++) {
+    let c = ca[i]
+    while (c.charAt(0) === ' ') {
+      c = c.substring(1)
+    }
+    if (c.indexOf(name) === 0) {
+      return c.substring(name.length, c.length)
+    }
+  }
+  return ''
+}
 
 class GitalkComponent extends Component {
   state = {
@@ -47,6 +61,7 @@ class GitalkComponent extends Component {
     isOccurError: false,
     errorMsg: '',
   }
+
   constructor (props) {
     super(props)
     this.options = Object.assign({}, {
@@ -88,10 +103,17 @@ class GitalkComponent extends Component {
     }
 
     const query = queryParse()
-    if (query.code) {
-      if (res.data && res.data.access_token) {
-        this.accessToken = res.data.access_token
 
+    if (query.code) {
+      const token = getCookie('access_token')
+      if (token) {
+        const replacedUrl = `${window.location.origin}${window.location.pathname}${queryStringify(query)}${window.location.hash}`
+        history.replaceState(null, null, replacedUrl)
+        this.options = Object.assign({}, this.options, {
+          url: replacedUrl,
+          id: replacedUrl
+        }, props.options)
+        this.accessToken = token
         this.getInit()
           .then(() => this.setState({ isIniting: false }))
           .catch(err => {
@@ -104,7 +126,6 @@ class GitalkComponent extends Component {
           })
       } else {
         // no access_token
-        console.log('res.data err:', res.data)
         this.setState({
           isOccurError: true,
           errorMsg: formatErrorMsg(new Error('no access token'))
@@ -129,11 +150,11 @@ class GitalkComponent extends Component {
     this.commentEL && autosize(this.commentEL)
   }
 
+
   get accessToken () {
-    return this._accessToke || window.localStorage.getItem(GT_ACCESS_TOKEN)
+    return this._accessToken || getCookie('access_token')
   }
   set accessToken (token) {
-    window.localStorage.setItem(GT_ACCESS_TOKEN, token)
     this._accessToken = token
   }
   get loginLink () {

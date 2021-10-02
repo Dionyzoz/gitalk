@@ -89,48 +89,27 @@ class GitalkComponent extends Component {
 
     const query = queryParse()
     if (query.code) {
-      const code = query.code
-      delete query.code
-      const replacedUrl = `${window.location.origin}${window.location.pathname}${queryStringify(query)}${window.location.hash}`
-      history.replaceState(null, null, replacedUrl)
-      this.options = Object.assign({}, this.options, {
-        url: replacedUrl,
-        id: replacedUrl
-      }, props.options)
+      if (res.data && res.data.access_token) {
+        this.accessToken = res.data.access_token
 
-      axiosJSON.post(this.options.proxy, {
-        code,
-        client_id: this.options.clientID,
-        client_secret: this.options.clientSecret
-      }).then(res => {
-        if (res.data && res.data.access_token) {
-          this.accessToken = res.data.access_token
-
-          this.getInit()
-            .then(() => this.setState({ isIniting: false }))
-            .catch(err => {
-              console.log('err:', err)
-              this.setState({
-                isIniting: false,
-                isOccurError: true,
-                errorMsg: formatErrorMsg(err)
-              })
+        this.getInit()
+          .then(() => this.setState({ isIniting: false }))
+          .catch(err => {
+            console.log('err:', err)
+            this.setState({
+              isIniting: false,
+              isOccurError: true,
+              errorMsg: formatErrorMsg(err)
             })
-        } else {
-          // no access_token
-          console.log('res.data err:', res.data)
-          this.setState({
-            isOccurError: true,
-            errorMsg: formatErrorMsg(new Error('no access token'))
           })
-        }
-      }).catch(err => {
-        console.log('err: ', err)
+      } else {
+        // no access_token
+        console.log('res.data err:', res.data)
         this.setState({
           isOccurError: true,
-          errorMsg: formatErrorMsg(err)
+          errorMsg: formatErrorMsg(new Error('no access token'))
         })
-      })
+      }
     } else {
       this.getInit()
         .then(() => this.setState({ isIniting: false }))
@@ -237,19 +216,13 @@ class GitalkComponent extends Component {
         t: Date.now()
       }
     }).then(res => {
-      const { createIssueManually } = this.options
-      let isNoInit = false
       let issue = null
       if (!(res && res.data && res.data.length)) {
-        if (!createIssueManually && this.isAdmin) {
-          return this.createIssue()
-        }
-
-        isNoInit = true
-      } else {
-        issue = res.data[0]
+        return this.createIssue()
       }
-      this.setState({ issue, isNoInit })
+      issue = res.data[0]
+
+      this.setState({ issue })
       return issue
     })
   }
@@ -607,9 +580,9 @@ class GitalkComponent extends Component {
           })
         }}/>
         <p>{this.i18n.t('please-contact', { user: [].concat(admin).map(u => `@${u}`).join(' ') })}</p>
-        {this.isAdmin ? <p>
+        <p>
           <Button onClick={this.handleIssueCreate} isLoading={isIssueCreating} text={this.i18n.t('init-issue')} />
-        </p> : null}
+        </p>
         {!user && <Button className="gt-btn-login" onClick={this.handleLogin} text={this.i18n.t('login-with-github')} />}
       </div>
     )

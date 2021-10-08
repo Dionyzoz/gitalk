@@ -35,7 +35,7 @@ module.exports = {
   entry: './index.js',
 
   output: {
-    path: path.resolve(__dirname, 'dist'),
+    path: path.resolve('/home/lucas/Coding/Sana/DeveloperPortal/DeveloperPortal/_templates/sana-template/styles', 'dist'),
     publicPath: '/dist',
     filename: 'gitalk.js',
     libraryTarget: 'umd',

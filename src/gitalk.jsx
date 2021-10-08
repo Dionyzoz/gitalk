@@ -65,10 +65,7 @@ class GitalkComponent extends Component {
   constructor (props) {
     super(props)
     this.options = Object.assign({}, {
-      id: window.location.href,
-      number: -1,
-      labels: ['Gitalk'],
-      title: window.document.title,
+      labels: [],
       body: '', // window.location.href + header.meta[description]
       language: window.navigator.language || window.navigator.userLanguage,
       perPage: 10,
@@ -348,6 +345,7 @@ class GitalkComponent extends Component {
   logout () {
     this.setState({ user: null })
     window.localStorage.removeItem(GT_ACCESS_TOKEN)
+    document.cookie = 'access_token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;'
   }
   getRef = e => {
     this.publicBtnEL = e

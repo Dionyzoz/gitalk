@@ -64,6 +64,7 @@ class GitalkComponent extends Component {
 
   constructor (props) {
     super(props)
+    this.issuesRef = props.options.issuesRef
     this.options = Object.assign({}, {
       labels: [],
       body: '', // window.location.href + header.meta[description]
@@ -221,29 +222,7 @@ class GitalkComponent extends Component {
         })
     })
   }
-  getIssueByLabels () {
-    const { owner, repo, id, labels, clientID, clientSecret } = this.options
 
-    return axiosGithub.get(`/repos/${owner}/${repo}/issues`, {
-      auth: {
-        username: clientID,
-        password: clientSecret
-      },
-      params: {
-        labels: labels.concat(id).join(','),
-        t: Date.now()
-      }
-    }).then(res => {
-      let issue = null
-      if (!(res && res.data && res.data.length)) {
-        return this.createIssue()
-      }
-      issue = res.data[0]
-
-      this.setState({ issue })
-      return issue
-    })
-  }
   getIssue () {
     const { number } = this.options
     const { issue } = this.state
@@ -254,11 +233,11 @@ class GitalkComponent extends Component {
 
     if (typeof number === 'number' && number > 0) {
       return this.getIssueById().then(resIssue => {
-        if (!resIssue) return this.getIssueByLabels()
+        if (!resIssue) return this.createIssue()
         return resIssue
       })
     }
-    return this.getIssueByLabels()
+    return this.createIssue()
   }
   createIssue () {
     const { owner, repo, title, body, id, labels, url } = this.options
@@ -275,6 +254,7 @@ class GitalkComponent extends Component {
       }
     }).then(res => {
       this.setState({ issue: res.data })
+      this.options.updateIssues(res.data)
       return res.data
     })
   }

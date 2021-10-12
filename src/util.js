@@ -47,8 +47,12 @@ export const getMetaContent = (name, content) => {
 export const formatErrorMsg = err => {
   let msg = 'Error: '
   if (err.response && err.response.data && err.response.data.message) {
-    msg += `${err.response.data.message}. `
-    err.response.data.errors && (msg += err.response.data.errors.map(e => e.message).join(', '))
+    if (err.response.data.message === 'Bad credentials') {
+      msg = 'To create an issue you must be logged in first'
+    } else {
+      msg += `${err.response.data.message}. `
+      err.response.data.errors && (msg += err.response.data.errors.map(e => e.message).join(', '))
+    }
   } else {
     msg += err.message
   }

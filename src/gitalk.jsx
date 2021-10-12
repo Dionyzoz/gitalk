@@ -476,7 +476,7 @@ class GitalkComponent extends Component {
       this.setState({
         isIssueCreating: false,
         isOccurError: true,
-        errorMsg: formatErrorMsg(err)
+        errorMsg: (formatErrorMsg(err))
       })
     }).then(res => {
       if (res) {
